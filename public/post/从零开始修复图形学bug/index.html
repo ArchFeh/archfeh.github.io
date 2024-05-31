@@ -1,0 +1,364 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>从零开始修复图形学bug - 自我意识过剩的产物</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="我是图形学练习两个半月的实习生，现在遇到了一个图形界面的bug，terminal文字选中存在偏移。虽然学习了OpenGL，Linux图形栈等前置知识，但这是第一次直面bug，下面我将从几个方面来记录从零开始修复它的历程。
+1. 确认问题，复现问题 当我们遇到一个用户提交的bug时，首先我们要确定这个问题能否复现，是不是真实存在且普遍存在。针对这个bug，我使用Lichee Pi 4A刷写了相同的固件，打开terminal，office，浏览器等软件，然后进行了选取操作，发现确实存在一些不跟手，没有指哪打哪的精准感。问题确实存在。
+对照参考 为了确定问题是出现在哪一部分。我选取了VisionFive 2开发板作为对照组，查看在VisionFive 2下是否存在同样的偏移，答案是否定的。我又试图使用Lichee Pi 4A刷写其他的系统固件，发现该问题还是存在。由此可以确定这是Lichee Pi 4A特有的问题。
+2. 寻找解决方案 对于一个初学者来说，没法立刻定位到问题所在。这可能是Linux内核的问题，也可能是硬件的问题，也可能是图形驱动的问题或者桌面本身的bug。如果一个个测试的话，很费时费力，当然等以后经验老道了就可以一眼直击问题所在。
+沟通能力 我作为一个新人，我选择的方法不是闭门造车，而是和老手进行交流，来一场头脑风暴。在我们的工作中，个人能力固然重要，但是团队的力量也不可忽视。沟通能力至关重要，尤其是从事开源工作时，我们需要和不同语言不同文化的 开发者沟通，在沟通时，我们要能够准确的描述问题。每个人的时间都很宝贵，如果浪费在理解你的话语上，就得不偿失了。我分别询问了两位同事，他们从两个角度给出了不同的可能性
+rv浮点操作问题 硬件指针问题 独立思考 根据我们上文写的对照参考，我们可以初步得到一些判断，小概率是rv浮点操作问题，大概率是硬件指针问题。我遵循由表及里的步骤来解决问题，越是表层的问题，排除起来越容易，越节省时间。
+3. 开始解决问题 为了解决硬件指针的问题。我们需要查阅Linux图形栈里硬件指针属于哪一部分。既然bug是鼠标指针偏移，那就可以得到X.Org——&gt;InputDevice的链条，我们来查阅有关InputDevice的男人（man）文件，我们直接$ man xorg.conf,可以看到
+InputDevice sections have the following format:
+Section &#34;InputDevice&#34; Identifier &#34;name&#34; Driver &#34;inputdriver&#34; options ... EndSection 在之前对xorg的学习中，我们知道常用的input driver有libinput,但是在libinput的配置文件中，我们没有找到有关指针的选项。但是除libinput之外，还有一个modesetting驱动，在$ man modesetting之后，我们可以看到如下的配置
+The following driver Options are supported: Option &ldquo;SWcursor&rdquo; &ldquo; boolean &rdquo; Selects software cursor. The default is off.
+这不就是我们的软件指针设置吗？立刻
+$ vim /usr/share/X11/xorg.conf.d/10-modsetting.conf Section &#34;Device&#34; Identifier &#34;PVR&#34; Driver &#34;modesetting&#34; Option &#34;SWCursor&#34; &#34;true&#34; EndSection 重启xorg，发现问题解决了！此问题的解决方法就是将硬件指针关闭，切换为软件指针。但是这不是一种普适的解决方法，一般我们很少会使用软件指针，而且硬件指针的使用体验会比软件指针更好。modesetting驱动又与内核的ioctl有关，又可以合理的怀疑是Linux内核方面存在问题，当然这些是后话。" />
+  <meta name="author" content="ArchFeh" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://www.gravatar.com/avatar/ef333c1203724d1cb48104b2679529bb?s=160&amp;d=identicon" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.126.1">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >自我意识过剩的产物</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/about/"
+        >关于</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/contact/"
+        >找我</a
+      >
+      
+    </nav>
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/archfeh"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">从零开始修复图形学bug</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>2023年11月9日</time>
+      
+      
+      
+      
+      <span class="mx-1">&middot;</span>
+      <span>ArchFeh</span>
+      
+    </div>
+    
+  </header>
+
+  <section><p>我是图形学<s>练习两个半月的实习生</s>，现在遇到了一个图形界面的bug，<a href="https://github.com/revyos/revyos/issues/11">terminal文字选中存在偏移</a>。虽然学习了<strong>OpenGL</strong>，<strong>Linux图形栈</strong>等前置知识，但这是第一次直面bug，下面我将从几个方面来记录从零开始修复它的历程。</p>
+<hr>
+<h2 id="1-确认问题复现问题">1. 确认问题，复现问题</h2>
+<p>当我们遇到一个用户提交的bug时，首先我们要确定这个问题能否复现，是不是真实存在且普遍存在。针对这个bug，我使用<a href="https://sipeed.com/licheepi4a">Lichee Pi 4A</a>刷写了相同的固件，打开terminal，office，浏览器等软件，然后进行了选取操作，发现确实存在一些不跟手，没有指哪打哪的精准感。问题<strong>确实</strong>存在。</p>
+<h4 id="对照参考">对照参考</h4>
+<p>为了确定问题是出现在哪一部分。我选取了<a href="https://www.starfivetech.com/en/site/boards">VisionFive 2</a>开发板作为对照组，查看在<a href="https://www.starfivetech.com/en/site/boards">VisionFive 2</a>下是否存在同样的偏移，答案是否定的。我又试图使用<a href="https://sipeed.com/licheepi4a">Lichee Pi 4A</a>刷写其他的系统固件，发现该问题还是存在。由此可以确定这是<a href="https://sipeed.com/licheepi4a">Lichee Pi 4A</a>特有的问题。</p>
+<hr>
+<h2 id="2-寻找解决方案">2. 寻找解决方案</h2>
+<p>对于一个初学者来说，没法立刻定位到问题所在。这可能是Linux内核的问题，也可能是硬件的问题，也可能是图形驱动的问题或者桌面本身的bug。如果一个个测试的话，很费时费力，当然等以后经验老道了就可以一眼直击问题所在。</p>
+<h4 id="沟通能力">沟通能力</h4>
+<p>我作为一个新人，我选择的方法不是闭门造车，而是和老手进行交流，来一场头脑风暴。在我们的工作中，个人能力固然重要，但是团队的力量也不可忽视。沟通能力至关重要，尤其是从事开源工作时，我们需要和不同语言不同文化的                     开发者沟通，在沟通时，我们要能够准确的描述问题。每个人的时间都很宝贵，如果浪费在理解你的话语上，就得不偿失了。我分别询问了两位同事，他们从两个角度给出了不同的可能性</p>
+<ul>
+<li>rv浮点操作问题</li>
+<li>硬件指针问题</li>
+</ul>
+<h4 id="独立思考">独立思考</h4>
+<p>根据我们上文写的对照参考，我们可以初步得到一些判断，小概率是rv浮点操作问题，大概率是硬件指针问题。我遵循由表及里的步骤来解决问题，越是表层的问题，排除起来越容易，越节省时间。</p>
+<h2 id="3-开始解决问题">3. 开始解决问题</h2>
+<p>为了解决硬件指针的问题。我们需要查阅Linux图形栈里硬件指针属于哪一部分。既然bug是鼠标指针偏移，那就可以得到<code>X.Org——&gt;InputDevice</code>的链条，我们来查阅有关<code>InputDevice</code>的男人（man）文件，我们直接<code>$ man xorg.conf</code>,可以看到</p>
+<blockquote>
+<p><strong>InputDevice</strong> sections have the following format:</p>
+<pre><b>Section &#34;InputDevice&#34;</b>
+<b>    Identifier &#34;</b><i>name</i><b>&#34;</b>
+<b>    Driver     &#34;</b><i>inputdriver</i><b>&#34;</b>
+<i>    options</i>
+<i>    ...</i>
+<b>EndSection</b></pre>
+</blockquote>
+<p>在之前对xorg的学习中，我们知道常用的input driver有<a href="https://wiki.archlinux.org/title/libinput">libinput</a>,但是在libinput的配置文件中，我们没有找到有关指针的选项。但是除libinput之外，还有一个<code>modesetting</code>驱动，在<code>$ man modesetting</code>之后，我们可以看到如下的配置</p>
+<blockquote>
+<p>The following driver <strong>Options</strong> are supported:
+<a href="https://man.archlinux.org/man/modesetting.4#Option"> <strong>Option &ldquo;SWcursor&rdquo; &ldquo;</strong>  <em>boolean</em> <strong>&rdquo;</strong></a>
+Selects software cursor. The default is <strong>off.</strong></p>
+</blockquote>
+<p>这不就是我们的软件指针设置吗？立刻</p>
+<pre tabindex="0"><code>$ vim /usr/share/X11/xorg.conf.d/10-modsetting.conf
+Section &#34;Device&#34;
+	Identifier &#34;PVR&#34;
+	Driver &#34;modesetting&#34;
+	Option &#34;SWCursor&#34; &#34;true&#34;
+EndSection
+</code></pre><p>重启xorg，发现问题解决了！此问题的解决方法就是将硬件指针关闭，切换为软件指针。但是这不是一种普适的解决方法，一般我们很少会使用软件指针，而且硬件指针的使用体验会比软件指针更好。modesetting驱动又与内核的ioctl有关，又可以合理的怀疑是Linux内核方面存在问题，当然这些是后话。</p>
+<h2 id="总结">总结</h2>
+<p>所以当我们进入一个新的领域，面对新问题的时候，我们解决问题只需要遵循如下的方法论：</p>
+<ul>
+<li>确认问题</li>
+<li>多沟通，破除信息差</li>
+<li>独立思考，合理推测</li>
+<li>由表及里，逐个击破</li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">自我意识过剩的产物</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>
