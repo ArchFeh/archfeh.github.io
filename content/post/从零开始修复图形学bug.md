@@ -37,7 +37,7 @@ math: false
 
 ## 3. 开始解决问题
 
-为了解决硬件指针的问题。我们需要查阅Linux图形栈里硬件指针属于哪一部分。既然bug是鼠标指针偏移，那就可以得到`X.Org——>InputDevice`的链条，我们来查阅有关`InputDevice`的男人（man）文件，我们直接`$ man xorg.conf`,可以看到
+为了解决硬件指针的问题。我们需要查阅Linux图形栈里硬件指针属于哪一部分。既然bug是鼠标指针偏移，那就可以得到 `X.Org——>InputDevice` 的链条，我们来查阅有关 `InputDevice` 的男人（man）文件，我们直接 `$ man xorg.conf` ,可以看到
 
 > **InputDevice** sections have the following format:
 > 
@@ -48,7 +48,7 @@ math: false
 > <i>    ...</i>
 > <b>EndSection</b></pre>
 
-在之前对xorg的学习中，我们知道常用的input driver有[libinput](https://wiki.archlinux.org/title/libinput),但是在libinput的配置文件中，我们没有找到有关指针的选项。但是除libinput之外，还有一个`modesetting`驱动，在`$ man modesetting`之后，我们可以看到如下的配置
+在之前对xorg的学习中，我们知道常用的input driver有[libinput](https://wiki.archlinux.org/title/libinput),但是在libinput的配置文件中，我们没有找到有关指针的选项。但是除libinput之外，还有一个 `modesetting` 驱动，在 `$ man modesetting` 之后，我们可以看到如下的配置
 
 > The following driver **Options** are supported:
 > [ **Option "SWcursor" "**  *boolean* **"**](https://man.archlinux.org/man/modesetting.4#Option)
