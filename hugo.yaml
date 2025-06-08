@@ -1,0 +1,63 @@
+# Documentation: https://gohugo.io/getting-started/configuration
+# Don't remove _merge, which imports default config
+theme: hugo-theme-yue
+baseURL: https://ruyi.su/ # Change this to your real domain name, e.g. https://my-cool-domain.org/
+defaultContentLanguage: zh-CN
+defaultContentLanguageInSubdir: false
+enableGitInfo: false # Set lastmod from git history, this may increase build time
+enableEmoji: true # Emoji list: https://gohugo.io/quick-reference/emojis/
+enableRobotsTXT: true
+
+params:
+  _merge: deep # Import default config
+  rssFullContent: true
+  homePagerSize: 5
+  sectionPagerSize: 10000 # Default: 10, set this to a large number to remove pagination
+  images:
+    # Default image used in Open Graph, see https://gohugo.io/templates/embedded/#configure-open-graph
+    - favicon.ico # /static/favicon.ico
+
+frontmatter:
+  lastmod: ['lastmod', ':default'] # lastmod in front matter has highest precedence
+
+markup:
+  _merge: deep # Import default config
+  goldmark:
+    renderer:
+      unsafe: true # Allow HTML code in Markdown, see https://gohugo.io/getting-started/configuration-markup/#rendererunsafe
+
+# Any key not defined under a languages will fall back to the global value in the root of configuration
+languages:
+  zh-CN:
+    hasCJKLanguage: true
+    contentDir: content
+    languageCode: zh-CN
+    languageDirection: ltr
+    languageName: 中文
+    title: 小笔记
+    weight: 20
+    menus:
+      main:
+        - name: 主页
+          pageRef: /
+          weight: 10
+        - name: 文章
+          pageRef: /posts
+          weight: 20
+        - name: 标签
+          pageRef: /tags
+          weight: 30
+        - name: 类别
+          pageRef: /categories
+          weight: 40
+        - name: 关于
+          pageRef: /about
+          weight: 50
+    params:
+      dateFormat: 2006年1月2日
+      author: ArchFeh
+      footer:
+        copyright:
+          yearStart: 2023
+          # yearEnd: 2024
+          author: ArchFeh

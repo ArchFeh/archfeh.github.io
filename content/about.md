@@ -1,7 +1,6 @@
-+++
-title = "关于我"
-description = "Hugo, the world's fastest framework for building websites"
-date = "2024-05-31"
-aliases = ["about-us", "about-hugo", "contact"]
-author = "ArchFeh"
-+++
+---
+title: 关于 
+date: 2024-06-27T23:14:15+08:00
+---
+
+一个上了年纪记性差又喜欢折腾的人
