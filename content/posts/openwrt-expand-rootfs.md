@@ -1,5 +1,7 @@
 ---
 title: Openwrt x86扩容根目录
+summary: 仅限x86-64-generic-ext4-combined-efi版本
+
 slug: openwrt-expand-rootfs
 date: 2025-06-16T09:39:10+08:00
 # lastmod: 2025-06-16T09:39:10+08:00 # Last modification date

@@ -1,6 +1,6 @@
 ---
 title: Docker部署爱快grafana监控面板
-description: 使用docker部署爱快grafana监控面板
+summary: 使用docker部署爱快grafana监控面板
 slug: ikuai
 date: 2025-06-15T23:35:40+08:00
 # lastmod: 2025-06-15T23:35:40+08:00 # Last modification date
