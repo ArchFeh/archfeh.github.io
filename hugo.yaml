@@ -1,7 +1,7 @@
 # Documentation: https://gohugo.io/getting-started/configuration
 # Don't remove _merge, which imports default config
 theme: hugo-theme-yue
-baseURL: https://ruyi.su/ # Change this to your real domain name, e.g. https://my-cool-domain.org/
+baseURL: https://arch.feh.su/ # Change this to your real domain name, e.g. https://my-cool-domain.org/
 defaultContentLanguage: zh-CN
 defaultContentLanguageInSubdir: false
 enableGitInfo: false # Set lastmod from git history, this may increase build time
@@ -34,7 +34,7 @@ languages:
     languageCode: zh-CN
     languageDirection: ltr
     languageName: 中文
-    title: 如意苏
+    title: 小Aの帕金森日记
     weight: 20
     menus:
       main:
